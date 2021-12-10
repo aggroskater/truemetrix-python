@@ -19,8 +19,8 @@ job of talking to the device.
 LICENSE
 =======
 
-This project is licensed under the GPLv3 or later, SPDX designations:
+This project is licensed under the AGPLv3 or later, SPDX designations:
 
-GNU General Public License v3.0 or later
-GPL-3.0-or-later
+GNU Affero General Public License v3.0 or later
+AGPL-3.0-or-later
 
