@@ -21,6 +21,6 @@ LICENSE
 
 This project is licensed under the AGPLv3 or later, SPDX designations:
 
-GNU Affero General Public License v3.0 or later
-AGPL-3.0-or-later
+  * `GNU Affero General Public License v3.0 or later`
+  * `AGPL-3.0-or-later`
 
