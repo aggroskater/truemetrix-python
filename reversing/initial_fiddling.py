@@ -16,11 +16,52 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#
+# Goal: Prove that most of the packet data bytes are similar with the exception
+# of the ones at the start (the first 9 or 10 bytes)
+#
+# Status: Proven
+#
+
+from typing import Dict
 from pcapng import FileScanner
+from pcapng.blocks import EnhancedPacket
+
+bytearray = []
 
 with open('./captures/true-metrix-usb-cap-2021-12-06.pcapng','rb') as fp:
+    
+    # each entry in bytearray is a dict that records how many times each
+    # binary value was found in the Nth byte in the packet
+    for i in range(64):
+        bytearray.append({})
+        
+    #print(bytearray)
     scanner = FileScanner(fp)
     for block in scanner:
-        print("block found")
-        print(block)
+        #print("block found")
+        #blk = block.interface
+        #print(block.packet_payload_info)
+        try:
+            packet = block.packet_payload_info
+            if(packet[1] == 128):
+                bytestring = bytes(packet[2])[64:]
+                ctr = 0
+                for b in bytestring:
+                    #print(b, end='')
+                    if str(b) not in bytearray[ctr]:
+                        bytearray[ctr][str(b)] = 1
+                    else:
+                        bytearray[ctr][str(b)] = bytearray[ctr][str(b)] + 1
+                    ctr = ctr + 1
+                #print()
+            else:
+                #print("skip")
+                pass
+        except AttributeError:
+            pass
+    
+    #print(bytearray)
+    for dic in bytearray:
+        print(len(dic))
 
