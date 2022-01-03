@@ -23,8 +23,9 @@ from abc import ABC, abstractmethod
 class Transform(ABC, Generic[I,O]):
     inp : I = any
     out : O = any
-    nxt: None | Transform(Generic[O,any]) = None
+    #nxt: None | Transform(Generic[O,any]) = None
     #metadata: dict = Factory(dict)
+    path: List[str]
     def invoke(self): return self.transform
     @abstractmethod
     def transform(input: I) -> O: pass
@@ -40,19 +41,19 @@ class TransformStringToInt(Transform[str,int]):
     def transform(input: str) -> int:
         return int(input)
 
-class TransformIntToByteBigSigned(Transform[int,bytes]):
+class TransformIntToFourByteBigSigned(Transform[int,bytes]):
     def transform(input: int) -> bytes:
         return input.to_bytes(4, byteorder='big', signed=True)
 
-class TransformIntToByteBigUnsigned(Transform[int,bytes]):
+class TransformIntToFourByteBigUnsigned(Transform[int,bytes]):
     def transform(input: int) -> bytes:
         return input.to_bytes(4, byteorder='big', signed=False)
 
-class TransformIntToByteLittleSigned(Transform[int,bytes]):
+class TransformIntToFourByteLittleSigned(Transform[int,bytes]):
     def transform(input: int) -> bytes:
         return input.to_bytes(4, byteorder='little', signed=True)
 
-class TransformIntToByteLittleUnsigned(Transform[int,bytes]):
+class TransformIntToFourByteLittleUnsigned(Transform[int,bytes]):
     def transform(input: int) -> bytes:
         return input.to_bytes(4, byteorder='little', signed=False)
 
@@ -62,16 +63,43 @@ class TransformIntToByteLittleUnsigned(Transform[int,bytes]):
 
 comparables = []
 pipelines = [
-    [TransformStringToInt,TransformIntToByteBigSigned],
-    [TransformStringToInt,TransformIntToByteBigUnsigned]
+    [TransformStringToInt,TransformIntToFourByteBigSigned],
+    [TransformStringToInt,TransformIntToFourByteBigUnsigned]
 ]
+
+pipelines2 = [
+    [TransformStringToInt,[Transform1,Transform2,Transform3,Transform4],[Transform5,Transform6]]
+]
+comparables2 = []
 
 for row in csv:
     data = row[0]
     for pipeline in pipelines:
+        path = []
         for transform in pipeline:
+            path.append(transform.__name__)
+            transform.path = path
             data = transform.transform(data)
         comparables.append(data)
+
+    for pipeline in pipelines2:
+        path = []
+        for transform in pipeline:
+            if transform is list:
+                # NOPE IT DON'T WORK -__-
+                for internal in transform:
+                    path.append(transform.__name__)
+                    transform.path = path
+                    data = transform.transform(data)
+            else:
+                path.append(transform.__name__)
+                transform.path = path
+                data = transform.transform(data)
+        comparables.append(data)
+
+# HMMMM. Thinking I might want to use anytree:
+#
+# https://stackoverflow.com/questions/2358045/how-can-i-implement-a-tree-in-python
 
 # What I actually want...
 
@@ -103,3 +131,12 @@ for row in csv:
 # larger inputs. Maybe even link the transform output up to the
 # various comparison operations and make that memory-constrained
 # too.
+
+#
+# Hmm... But if we want a tree structure, you could see the same
+# transform in multiple spots of the tree. In that case, you
+# probably wouldn't want a fluent approach. Or at least, the
+# transforms themselves and their arrangement are separate concerns,
+# so perhaps don't force the arrangement to be associated with
+# the transform?
+#
