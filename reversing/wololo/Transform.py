@@ -21,12 +21,15 @@ from abc import ABC, abstractmethod
 
 @define
 class Transform(ABC, Generic[I,O]):
-    inp : I = any
-    out : O = any
+    # could probably use inp and out to validate pipelines prior
+    # to executing them. I.e., parent.out == child.inp for all
+    # parent-child relationships.
+    _inp : I = any
+    _out : O = any
     #nxt: None | Transform(Generic[O,any]) = None
     #metadata: dict = Factory(dict)
     path: List[str]
-    def invoke(self): return self.transform
+    #def invoke(self): return self.transform
     @abstractmethod
     def transform(input: I) -> O: pass
 

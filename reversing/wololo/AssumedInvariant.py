@@ -16,4 +16,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
+# AssumedInvariants should take a ComparableStream as input,
+# and output True/False based on whether the entire ComparableStream
+# meets the behaviour.
+#
+# The behaviour could be damn near anything, so really, the docstring
+# and name you give to a concrete AssumedInvariant is really important.
