@@ -56,7 +56,8 @@ with open('/home/preston/true-metrix-usb-driver-adventure/true-metrix-python/rev
                 if int(bytes(packet[2])[10]) == 1:
                     continue
 
-                bytestring = bytes(packet[2])[64:][:10]
+                # only the first nine bytes have meaningfully different values
+                bytestring = bytes(packet[2])[64:][:9]
                 bnum = 0
                 # also try to just look at the raw bytestream as zeros and ones...
                 bytestream = ''
@@ -313,6 +314,27 @@ with open('/home/preston/true-metrix-usb-driver-adventure/true-metrix-python/rev
                 # I'm thinking that my "initial fiddling" distribution might have gotten
                 # thrown off by the host->device packets. Gonna re-run it with the extra
                 # filtering.
+
+                # Hoo-lee crap that simplifies things. The very first byte has eight
+                # unique values. Looking at them, they are 0x01 through 0x08.
+                # The next eight bytes have several unique values. Everything else
+                # is garbage we can ignore. I think the data we're after lives in
+                # bytes 2 through 9 (or 1 through 8 if we're zero indexing). We
+                # should be able to figure out what those 8 bytes mean.
+                #
+                # It's possible that a single entry is spread out over multiple
+                # packets though. There are 424 packets from the device to the host.
+                # 95 b4 dec 09. 97 including dec 09.
+                # That's a little more than 4 packets per entry.
+                # I wonder if that first byte implies a sequence or something. I dunno.
+                # Or maybe it's just protocol overhead?
+
+                # You know what? Let's see what the min and max value of each byte is.
+                # I wanna know which ones have the greatest variance, because surely
+                # there'll be more variance for sugar level measurements than dates at
+                # least.
+
+
 
                 #####################################################################
 
