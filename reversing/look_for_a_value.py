@@ -135,6 +135,12 @@ with open('./captures/true-metrix-usb-cap-2021-12-06.pcapng','rb') as fp:
                 # reflection that some portion of a particular entry coming over the wire
                 # might get split across packets? Causing the start of the next one to be
                 # offset slightly? Rather than right on the first byte?
+                #
+                # But if that were the case, why are only the first 10 bytes filled with
+                # data? I mean, I guess the same problem could manifest itself even if
+                # you're only using the first 10 bytes, just... why not send more?
+                # I'd assume because the device can't do it. But I don't know that for
+                # sure.
             else:
                 #print("skip")
                 pkt = pkt + 1
