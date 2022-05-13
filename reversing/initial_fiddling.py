@@ -42,9 +42,22 @@ with open('./captures/true-metrix-usb-cap-2021-12-06.pcapng','rb') as fp:
         #print("block found")
         #blk = block.interface
         #print(block.packet_payload_info)
+
+                
+
         try:
             packet = block.packet_payload_info
             if(packet[1] == 128):
+
+                # we don't have any handy dandy types to help us
+                # like there are in wireshark. so... we want to
+                # filter based on direction so we only look at
+                # 128 byte length packets from device to host,
+                # not host to device. If this byte is 1, then
+                # it's host to device. Don't want it. Skip it.
+                if int(bytes(packet[2])[10]) == 1:
+                    continue
+
                 bytestring = bytes(packet[2])[64:]
                 ctr = 0
                 for b in bytestring:
