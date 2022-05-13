@@ -273,7 +273,46 @@ with open('/home/preston/true-metrix-usb-driver-adventure/true-metrix-python/rev
                 # pattern is breaking down. So... maybe the padding I was seeing wasn't from
                 # the label, but a date or a time? Time is HH:DD with AM/PM indicator, but
                 # that might just be calculated and the time might be stored differently.
-                
+
+                # first few days of data...
+                #
+                # 176 - not eaten - 11-08 - 08:30 PM
+                # 177 - eaten - 11-08 - 11:35 PM
+                # 116 - not eaten - 11-09 - 01:10 PM
+                # 163 - not eaten - 11-09 - 6:58 PM
+                # 154 - eaten - 11-09 - 09:57 PM
+                # 186 - not eaten - 11-10 - 09:57 AM
+                # 152 - not eaten - 11-10 - 04:13 PM
+                # 149 - not eaten - 11-10 - 07:49 PM
+                # 161 - eaten - 11-10 - 08:13 PM
+                # 145 - eaten - 11-10 - 11:11 PM
+                # 189 - eaten - 11-11 - 11:40 AM
+
+                # the dates could be stored as 8 bit numbers, as BCD, hell, even as ASCII.
+                # we saw ASCII getting sent to the device in the capture when it started,
+                # in the form of DDMMYY. Let's look for DDMMYY and DDMM formats of...
+                # say... 11-10 (November 10th)
+                #
+                # 101121 = 0x313031313231 = '001100010011000000110001001100010011001000110001'
+                # 1011 = 0x31303131 = '00110001001100000011000100110001'
+                #desired = '001100010011000000110001001100010011001000110001'
+                #desired = '00110001001100000011000100110001'
+                # nope. neither.
+                #
+                # Maybe two bytes, BCD for month and day? Nov 10 could be...
+                #
+                # 11 -> '1011' + '0001'
+                # 10 -> '1010' + '0000'
+                # let's try both orders
+                #desired = '1011000110100000'
+                #desired = '1010000010110001'
+                # nope. not there either.
+                #
+                # ugh.
+                #
+                # I'm thinking that my "initial fiddling" distribution might have gotten
+                # thrown off by the host->device packets. Gonna re-run it with the extra
+                # filtering.
 
                 #####################################################################
 
