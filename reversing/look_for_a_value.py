@@ -29,7 +29,7 @@ from pcapng.blocks import EnhancedPacket
 
 bytearray = []
 
-with open('./captures/true-metrix-usb-cap-2021-12-06.pcapng','rb') as fp:
+with open('/home/preston/true-metrix-usb-driver-adventure/true-metrix-python/reversing/captures/true-metrix-usb-cap-2021-12-06.pcapng','rb') as fp:
     
     # each entry in bytearray is a dict that records how many times each
     # binary value was found in the Nth byte in the packet
@@ -46,6 +46,16 @@ with open('./captures/true-metrix-usb-cap-2021-12-06.pcapng','rb') as fp:
         try:
             packet = block.packet_payload_info
             if(packet[1] == 128):
+
+                # we don't have any handy dandy types to help us
+                # like there are in wireshark. so... we want to
+                # filter based on direction so we only look at
+                # 128 byte length packets from device to host,
+                # not host to device. If this byte is 1, then
+                # it's host to device. Don't want it. Skip it.
+                if int(bytes(packet[2])[10]) == 1:
+                    continue
+
                 bytestring = bytes(packet[2])[64:][:10]
                 bnum = 0
                 # also try to just look at the raw bytestream as zeros and ones...
@@ -156,7 +166,7 @@ with open('./captures/true-metrix-usb-cap-2021-12-06.pcapng','rb') as fp:
                 # little 176 "0001 0111 0110" -> "0000 0001 0111 0110" -> "0111 0110 0000 0001"
                 # little 176 label "0001 0111 0110" -> "0001 0001 0111 0110" -> "0111 0110 0001 0001"
                 #desired = '0111011000000001'
-                desired = '0111011001000001' # with 0100 as the padding, I get a single result, and it's at an early packet; 62.
+                #desired = '0111011001000001' # with 0100 as the padding, I get a single result, and it's at an early packet; 62.
                 # with 0100 as padding...
                 #
                 # padded normal bcd LE - packet number: 62 - position - 1.0
@@ -173,14 +183,14 @@ with open('./captures/true-metrix-usb-cap-2021-12-06.pcapng','rb') as fp:
 
                 # is the very next entry one of the next packets? or at least after packet 62?
                 # 177 eaten (eaten is "0000") -> "0000 0001 0111 0111" -> "0111 0111 0000 0001"
-                desired = '0111011100000001'
+                #desired = '0111011100000001'
                 # drats. no results.
                 # maybe boundary problem?
                 # try next entry: 116 not eaten (not eaten is "0100") -> "0100 0001 0001 0110" -> "0001011001000001"
                 #desired = '0001011001000001'
                 # again nothing -__-
                 # what if we only look for "16" portions of the BCD?
-                desired = '10011001'
+                #desired = '10011001'
                 # that found a few things...
                 # maybe I should focus on trying to find a pattern from just that byte that's consistent and work
                 # my way outwards?
@@ -193,13 +203,13 @@ with open('./captures/true-metrix-usb-cap-2021-12-06.pcapng','rb') as fp:
                 # "0000 0001 0111 0110" + "0000 0001 0111 0111"
                 # which reversed would be...
                 # "0111 0110 0000 0001" + "0111 0111 0000 0001"
-                desired = "01110110000000010111011100000001"
+                #desired = "01110110000000010111011100000001"
                 # nothing. with estimated padding info?
-                desired = "01110110010000010111011100000001"
+                #desired = "01110110010000010111011100000001"
                 # nope.
 
                 # back to fiddling with eaten 177...
-                desired = '1001'+'0000'+'0000'+'0000'
+                #desired = '1001'+'0000'+'0000'+'0000'
                 # nothing. no matter the padding value, nothing -__-
 
                 # is it not actually Little Endian? Did I just get lucky a few times?
@@ -216,7 +226,7 @@ with open('./captures/true-metrix-usb-cap-2021-12-06.pcapng','rb') as fp:
                 # padding.
                 #
                 # 176
-                desired = "0001" + "0111" + "0000" + "0110"
+                #desired = "0001" + "0111" + "0000" + "0110"
                 # nothing! FFS.
                 #
                 # Maybe they're storing mmol/L and merely presenting/converting to mg/dL?
@@ -246,15 +256,24 @@ with open('./captures/true-metrix-usb-cap-2021-12-06.pcapng','rb') as fp:
                 # something...
 
                 # Ok. 98 in hex is 0x62, which is '01100010'
-                desired = '01100010'
+                #desired = '01100010'
                 # lots of results. Which I guess is expected when we're literally only looking
                 # for a single byte. There's probably lots of false positives here. But let's
                 # keep going.
                 # 116 0x74 '01110100'
-                desired = '01110100'
+                #desired = '01110100'
 
                 # 154 0x9A '10011010'
-                desired = '10011010'
+                #desired = '10011010'
+
+                # You know what? Let's start taking dates into account. the first two entries
+                # with my padding theory work, and they both occur on 11-08 (2021, though I
+                # don't think the device stores dates, honestly; I think the host computer
+                # is responsible for that). The next entry is on 11-09 and that's where the
+                # pattern is breaking down. So... maybe the padding I was seeing wasn't from
+                # the label, but a date or a time? Time is HH:DD with AM/PM indicator, but
+                # that might just be calculated and the time might be stored differently.
+                
 
                 #####################################################################
 
@@ -316,6 +335,19 @@ with open('./captures/true-metrix-usb-cap-2021-12-06.pcapng','rb') as fp:
                 # eaten apple - "0000"
                 # full apple - "????" assuming "0100"
                 # let's try "0001" for full apple... 
+
+            # AHHHHHHHHHHHH. Took a second look at the capture in wireshark.
+            # Only the first 5 bytes seem to be unique data on each submission
+            # from the device to the host. Well, that and a couple bytes a bit
+            # later on (the 25th and 26th bytes).
+            #
+            # Have I been looking at the wrong chunk in this python script the
+            # whole time?
+            #
+            # Nope. Nope nope nope. It's right. I was looking at protocol info,
+            # not data info. First 10 bytes of *data* is still where most of
+            # the variance is.
+            
 
             else:
                 #print("skip")
