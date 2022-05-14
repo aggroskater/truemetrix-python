@@ -34,7 +34,8 @@ for i in range(9):
         "index": i,
         "min": 255,
         "max": 0,
-        "unique_vals": []
+        "unique_vals": [],
+        "all_vals": []
     }
     mybytearray.append(byteinfo)
 
@@ -77,6 +78,7 @@ with open('/home/preston/true-metrix-usb-driver-adventure/true-metrix-python/rev
                         data['min'] = byte
                     if byte not in data['unique_vals']:
                         data['unique_vals'].append(byte)
+                    data['all_vals'].append(byte)
                     ctr = ctr + 1
 
                 
@@ -95,6 +97,20 @@ with open('/home/preston/true-metrix-usb-driver-adventure/true-metrix-python/rev
         print("max: " + str(i['max']))
         print("range: " + str(i['max'] - i['min']))
         print("uniqs: " + str(i['uniq_count']))
+        sorted = i['unique_vals']
+        sorted.sort()
+        all = i['all_vals']
+        counted = []
+        for i in sorted:
+            counted.append(all.count(i))
+        print("sorted: " + str(sorted))
+        print("freqcy: " + str(counted))
         print()
 
     #print(mybytearray)
+
+    # Hmmm... is it possible that the device is just dumping ALL of its memory?
+    # Like, we're getting the rows it has populated, *and* the empty ones? The thing
+    # is supposed to store up to 500 results with time/date.
+
+    # hmm. yeah. I wanna know how often each of those values shows up too.
