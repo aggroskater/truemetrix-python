@@ -1,0 +1,91 @@
+Byte8 is almost certainly the tens digit of the day of the month.
+
+(if you count up the rows with 2, 0, or 1, and subtract the duplicate readings,
+then i'm pretty sure the counts line up perfectly. which lines up with my theory
+that Byte0 has something to do with jumping around to which packets are what based
+on saving memory by not recording data that hasn't changed on the device.)
+
+dec66 is probably 2
+dec10 is almost certainly 3
+dec41 is probably 0
+dec53 is probably 1
+
+Byte6 might be the ones digit of day of the month, seeing as it has ten uniques and
+I have readings for X0 thru X9 days of November.
+
+So... if dec10 is almost certainly 3, and I only have three (all unique) readings on
+a 3X date (November 30 2021), I should hone in on those packets and see where the
+other data lines up! Investigate packets 30, 32, 34.
+
+Other interesting notes... Byte5 has 12 unique values, which would line up with
+the 12 hours of the day. Or it could be months, but... I only have data for two
+months. So...
+
+And we have 23 unique values for Byte1, which could be 24-hour time, with me not
+having one of the hours... Nope. I only have 17 of the hours:
+
+0	x
+1	x
+2	x
+3	x
+4	
+5	
+6	
+7	
+8	
+9	x
+10	
+11	x
+12	x
+13	x
+14	x
+15	
+16	x
+17	x
+18	x
+19	x
+20	x
+21	x
+22	x
+23	x
+
+Back to Packets 30, 32, and 34:
+
+B0	B1	B2	B3	B4	B5	B6	B7	B8						
+8	51	57	53	41	70	65	13	10								
+4	118	50	46	53	70	65	13	10								
+1	40	50	46	53	70	65	13	10
+
+which I'm pretty sure correspond to these rows of data:
+
+Date	    Time	    AMPM	Resultmgdl			
+11/30/2021	12:56:00	AM	    134
+11/30/2021	04:51:00	PM	    117
+11/30/2021	07:01:00	PM	    135
+
+Now, these rows of data have the following characteristics:
+
+ * All three have the same ones of the month
+ * All three have the same tens of the month
+ * All three have the same ones of the day
+ * All three have the same tens of the day
+ * Two have the same tens of the hour
+ * Two have the same tens of the minute
+ * Two have the same ones of the minute
+ * All of them have unique ones for the hour
+
+ Now... this lines up perfectly with B1 through B8 packets.
+
+ Which would mean... B1 through B8 are ALL dedicated to encoding
+ the date and time of an entry. But then, how do they encode
+ data on the actual reading?
+
+ My gut tells me the actual reading is scattered throughout bits
+ of each byte --or at least some of the bytes-- since you don't
+ need the entire byte to encode 0-9 digits. You only need 4 bits
+ for that. Meaning... I think the reading is scattered through 4
+ bits of a couple of these bytes at least. Might be encoded as
+ digits too (though not obvious digits; weird magic numbers for
+ each digit).
+
+
