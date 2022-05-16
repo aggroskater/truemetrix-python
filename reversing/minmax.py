@@ -45,6 +45,8 @@ with open('/home/preston/true-metrix-usb-driver-adventure/true-metrix-python/rev
     scanner = FileScanner(fp)
     pkt = 0
     for block in scanner:
+        if pkt == 74:
+            break
         #print("block found")
         #blk = block.interface
         #print(block.packet_payload_info)
